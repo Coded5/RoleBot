@@ -20,7 +20,8 @@ role_list_message_id = None
 BOT_DATA_FILE = os.environ['BOT_DATA_FILE']
 
 bot_state = {
-        'list_message_id': 0,
+    'log_channel_id': 0,
+    'list_message_id': 0,
     'roles': []
 }
 
@@ -51,10 +52,18 @@ async def on_message(message):
     # await message.channel.send(f"Hello, {message.author.mention}")
     await bot.process_commands(message)
 
-@bot.command()
+@bot.command(name="set_log_channel")
 @commands.has_permissions(administrator=True)
-async def hello(ctx):
-    await ctx.send(f"Hello, {ctx.author.mention}")
+async def set_log_channel(ctx, channel: discord.TextChannel):
+    global bot_state
+
+    bot_state['log_channel_id'] = channel.id
+    c = bot.get_channel(bot_state['log_channel_id'])
+    if c is not None and isinstance(c, discord.TextChannel):
+        await c.send("I will log to this channel from now on")
+    update_json()
+
+
 
 @bot.command(name="create_role")
 @commands.has_permissions(administrator=True)
@@ -89,6 +98,8 @@ async def create_role(ctx, emoji: str, *, name: str):
             'emoji': emoji,
             'id': new_role.id
         })
+
+        print(f"{bot_state}")
 
         update_json()
 
@@ -136,33 +147,38 @@ async def list_roles(ctx, channel: discord.TextChannel):
         print(f"{e}")
         await ctx.send(f"⚠️ An error occurred: `{e}`")
 
+
 @bot.event
-async def on_reaction_add(reaction, user):
+async def on_raw_reaction_add(payload):
     global bot_state
 
     # Ignore bot reactions
-    if user.bot:
+    if payload.user_id == bot.user.id:
         return
 
-    print(f"Reaction from {user.name}")
-    print(f"Reacted to {reaction.message.id}")
+    print(f"Reaction from user ID {payload.user_id}")
+    print(f"Reacted to {payload.message_id}")
 
     # Only respond if the reaction is on the correct message
-    if reaction.message.id == bot_state['list_message_id']:
+    if payload.message_id == bot_state['list_message_id']:
         print(f"Processing role")
-        guild = reaction.message.guild
-        member = guild.get_member(user.id)
+        guild = bot.get_guild(payload.guild_id)
+        member = guild.get_member(payload.user_id)
 
         if member is None:
-            print(f"Cannot find user {user.name}")
+            print(f"Cannot find user ID {payload.user_id}")
             return
 
-        emoji = reaction.emoji
-        role_id = None
+        emoji = payload.emoji
+        emoji_key = (
+            f"<{'a' if emoji.animated else ''}:{emoji.name}:{emoji.id}>"
+            if emoji.is_custom_emoji() else emoji.name
+        )
 
+        role_id = None
         for role in bot_state['roles']:
-            print(role)
-            if role['emoji'] == emoji:
+            print(emoji_key, role['emoji'], emoji_key == role['emoji'])
+            if role['emoji'] == emoji_key:
                 role_id = role['id']
                 break
 
@@ -176,10 +192,59 @@ async def on_reaction_add(reaction, user):
         except discord.Forbidden:
             print("Missing permission to add roles.")
 
-        await reaction.message.channel.send(
-            f"{user.mention} reacted with {reaction.emoji} on the role list!"
+        channel = bot.get_channel(bot_state['log_channel_id'])
+        if channel:
+            await channel.send(
+                f"<@{payload.user_id}> reacted with {emoji_key} on the role list!"
+            )
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    global bot_state
+
+    if payload.user_id == bot.user.id:
+        return
+
+    print(f"Reaction from user ID {payload.user_id}")
+    print(f"Reacted to {payload.message_id}")
+
+    if payload.message_id == bot_state['list_message_id']:
+        print(f"Processing role")
+        guild = bot.get_guild(payload.guild_id)
+        member = guild.get_member(payload.user_id)
+
+        if member is None:
+            print(f"Cannot find user ID {payload.user_id}")
+            return
+
+        emoji = payload.emoji
+        emoji_key = (
+            f"<{'a' if emoji.animated else ''}:{emoji.name}:{emoji.id}>"
+            if emoji.is_custom_emoji() else emoji.name
         )
-        await user
+
+        role_id = None
+        for role in bot_state['roles']:
+            print(emoji_key, role['emoji'], emoji_key == role['emoji'])
+            if role['emoji'] == emoji_key:
+                role_id = role['id']
+                break
+
+        role = guild.get_role(role_id)
+        if role is None:
+            print(f"Invalid role {role_id}")
+            return
+
+        try:
+            await member.remove_roles(role)
+        except discord.Forbidden:
+            print("Missing permission to remove roles.")
+
+        channel = bot.get_channel(bot_state['log_channel_id'])
+        if channel:
+            await channel.send(
+                f"<@{payload.user_id}> removed their {emoji_key} reaction — role removed."
+            )
 
 @bot.event
 async def on_guild_role_delete(role: discord.Role):
