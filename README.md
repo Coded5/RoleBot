@@ -1,40 +1,91 @@
 # RoleBot
 
-A very simple reaction role discord bot made with discord.py
+A Discord bot for reaction roles and channel management made with discord.py
 
-## Installtion
+## Installation
 
-### Prerequisite
-  * Python and Virtual environment
+### Prerequisites
 
+- Python and Virtual environment
 
-Just clone the repository and create the virtual environment then use pip to install the required packages and just run the script
-```
+Just clone the repository, create the virtual environment, then use pip to install the required packages and run the script:
+
+```bash
 git clone https://github.com/Coded5/RoleBot.git
 cd RoleBot
 virtualenv ./venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+python main.py
 ```
 
-Next, you need to provide the discord bot token and bot data json in your .env file like the following:
-```
+Next, provide the Discord bot token and bot data JSON in your `.env` file like the following:
+
+```env
 DISCORD_TOKEN=<Your token here>
 BOT_DATA_FILE=path-to-your-data.json
 ```
-**Note that your must discord bot have member intent and content intent enable in Privileged Gateway Intents**
 
+> **Note:** Your Discord bot must have **Message Content Intent** and **Server Members Intent** enabled in Privileged Gateway Intents.
+
+---
+
+## Features
+
+- **Reaction Roles:** Automatic role assignment/removal via emoji reactions
+- **Channel Management:** Create, duplicate, and manage channels and categories
+- **Permission Control:** All administrative commands require administrator permissions
+- **Logging:** Configurable logging channel for role assignments
+
+---
 
 ## Usage
 
 ### Commands
 
-All the command are for configuring roles and channels which require the user to have administrator privilege
+> All commands require administrator privileges.
 
-#### !create_role <emoji> <role_name>
-This command will bind the role (if doesn't exists will automatically be created) to the given emoji, the given emoji will be use for reaction
+#### Role Management
 
-#### !set_log_channel #your-channel
-This will set the log channel for the bot. It will send message of granting or removing roles to members. The bot must have access to the given channel
+- `!create_role <emoji> <role_name>` — Bind a role to an emoji for reaction roles  
+- `!list_roles #channel` — Send interactive role menu to specified channel  
+- `!remove_role <role_name>` — Delete a role from the server  
+- `!set_log_channel #channel` — Set channel for role assignment logs  
 
-#### !list_roles #your-channel
-This command will make the bot send the reaction roles message to the given channel and react to the message. Member can react to the given reaction and the role will be granted. The must have access to the given channel
+#### Category Management
+
+- `!create_category <name>` — Create a new category  
+- `!duplicate_category <source_category> <new_name>` — Duplicate category with all channels  
+- `!delete_category <category> confirm` — Delete category and all channels  
+- `!list_categories` — List all server categories  
+
+#### Channel Management
+
+- `!create_text_channel <category> <name>` — Create text channel in category  
+- `!create_voice_channel <category> <name>` — Create voice channel in category  
+- `!move_channel <channel> <category>` — Move channel to different category  
+- `!clone_channel <channel> [new_name]` — Clone a text channel  
+- `!set_channel_topic <channel> <topic>` — Set channel topic  
+
+---
+
+## Bot Permissions Required
+
+- Manage Roles
+- Manage Channels
+- Send Messages
+- Add Reactions
+- Read Message History
+- View Channels
+
+---
+
+## Setup Guide
+
+1. **Set log channel:**  
+   `!set_log_channel #bot-logs`
+2. **Create roles:**  
+   `!create_role 🎮 Gamer`
+3. **Deploy role menu:**  
+   `!list_roles #roles`
+4. Members can now react to get roles
