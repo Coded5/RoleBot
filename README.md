@@ -47,25 +47,29 @@ BOT_DATA_FILE=path-to-your-data.json
 
 #### Role Management
 
-- `!create_role <emoji> <role_name>` — Bind a role to an emoji for reaction roles  
-- `!list_roles #channel` — Send interactive role menu to specified channel  
-- `!remove_role <role_name>` — Delete a role from the server  
-- `!set_log_channel #channel` — Set channel for role assignment logs  
+- `!create_role <emoji> <role_name>` — Bind a role to an emoji for reaction roles
+- `!list_roles #channel` — Send interactive role menu to specified channel
+- `!remove_role <role_name>` — Delete a role from the server
+- `!set_log_channel #channel` — Set channel for role assignment logs
 
-#### Category Management
+#### Category Selection:
 
-- `!create_category <name>` — Create a new category  
-- `!duplicate_category <source_category> <new_name>` — Duplicate category with all channels  
-- `!delete_category <category> confirm` — Delete category and all channels  
-- `!list_categories` — List all server categories  
+- `!create_category <name>` — Create a new category
+- `!duplicate_category <source_category> <new_name>` — Duplicate category with all channels
+- `!delete_category <category> confirm` — Delete category and all channels
+- `!list_categories` — List all server categories
+- `!select_category` [name] - Select category to work with (shows list if no name given)
+- `!clear_selection` - Clear current selection
+- `!current_selection` - Show currently selected category
 
-#### Channel Management
+#### Channel Operations (on selected category):
 
-- `!create_text_channel <category> <name>` — Create text channel in category  
-- `!create_voice_channel <category> <name>` — Create voice channel in category  
-- `!move_channel <channel> <category>` — Move channel to different category  
-- `!clone_channel <channel> [new_name]` — Clone a text channel  
-- `!set_channel_topic <channel> <topic>` — Set channel topic  
+- `!create_text` <name> - Create text channel in selected category
+- `!create_voice` <name> - Create voice channel in selected category
+- `!list_channels` - List all channels in selected category
+- `!delete_channel` <name> - Delete channel by name in selected category
+- `!rename_channel` <old_name> <new_name> - Rename channel in selected category
+- `!move_channel_to_selected` <name> - Move any channel from server to selected category
 
 ---
 
